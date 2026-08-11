@@ -2,10 +2,19 @@ package main
 
 import (
 	"fmt"
-	"playground/internal/scalability"
+	// "playground/internal/scalability"
 )
 
-func main() {
-	var nums []int = []int{1, 7, 4, 9, 3, 6, 2}
-	fmt.Println(scalability.BubbleSort(nums))
+func PutItem(item int, rec chan<- int) {
+	rec <- item
 }
+
+func main() {
+	intChan := make(chan int)
+	for i := range 10 {
+		go PutItem(i, intChan)
+	}
+	fmt.Println(<-intChan)
+}
+
+// fork -join model
