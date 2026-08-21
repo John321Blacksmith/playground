@@ -5,6 +5,7 @@ from math import log
 from dataclasses import dataclass
 from typing import TypeVar, List, Dict
 from numpy import array
+import pandas as pd
 
 
 Func = TypeVar("Func")
@@ -57,7 +58,7 @@ def idf(term: str, sentences: List[Sentence]) -> float:
 	return log((len(sentences) + 1) / (len([s for s in sentences if s.count(term) > 0]) + 1)) + 1
 
 
-def get_scores_map(categs: List[str], sentences: List[Sentence], tf: Func, idf: Func) -> Dict[str, float]:
+def get_input_scores_map(categs: List[str], sentences: List[Sentence], tf: Func, idf: Func) -> Dict[str, float]:
 	scores: Dict[str, float] = {}
 	for i in range(len(categs)):
 		for j in range(len(sentences)):
@@ -67,13 +68,45 @@ def get_scores_map(categs: List[str], sentences: List[Sentence], tf: Func, idf: 
 	return scores
 
 
-def get_possible_category():...
+def get_sentence_scores_map(
+		categs: List[str],
+		sentence: Sentence,
+		sentences: List[Sentence],
+		tf: Func,
+		idf: Func
+	) -> Dict[str, float]:
+	scores: Dict[str, float] = {}
+	for i in range(len(categs)):
+		if categs[i] not in scores:
+			scores[categs[i]] = 0
+		scores[categs[i]] = tf(categs[i], sentence) * idf(categs[i], sentences)
+		
+	return scores
+
+
+def vectorize_scores(sentence_scores: Dict[str, float]) -> List[float]:
+	return array([v for v in sentence_scores.values()])
+
+
+def aggregate_vectors(categs: List[str], sentences: List[Sentence]) -> List[List[float]]:
+	...
 
 
 def main():
+	vectors: List[List[float]] = []
+	sum_vectors = array([.0 for i in range(len(categs))])
 	sentences = split_to_sentences(text)
-	print(get_scores_map(categs, sentences, tf, idf))
-		
+	for i in range(len(sentences)):
+		scores = get_sentence_scores_map(categs, sentences[i], sentences, tf, idf)
+		vector = vectorize_scores(scores)
+		vectors.append(vector)
+
+    
+	for i in range(len(vectors)):
+		sum_vectors += vectors[i]
+	series = pd.Series(data=categs, dtype="category")
+	print(series)
+	
 
 if __name__ == '__main__':
 	 main()
