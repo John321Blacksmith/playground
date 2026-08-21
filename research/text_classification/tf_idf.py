@@ -2,49 +2,79 @@
 This module contains a simple version of TF-IDF text processor.
 """
 from math import log
-from typing import TypeVar
+from dataclasses import dataclass
+from typing import TypeVar, List, Dict
 from numpy import array
+
 
 Func = TypeVar("Func")
 
 
-def tf_func(term, doc: str) -> float:
-    """
-    Find the importance rate of the term
-    in the specified document.
-    """
-    return doc.lower().count(term) / len(doc.split())
+text = "this sentence is about dog, the dog is a very friendly animal. this sentence in not about dog, the cat is lazier and faster than dog, since a cat can communicate to another cat. this sentence is neither about cat nor dog, it's about food, the food in very essential to animals. this sentence is not about food, it's about how to feed animals by their food. the previous sentence has more words about dog. the first sentence is about dog but this one is about cat, because cat is a domestic animal as well."
 
 
-def idf_func(term: str, d_corpus: list[str]) -> float:
-    """
-    Find the importance of the term across
-    the document corpus.
-    """
-    return log(len(d_corpus) + 1 / len([d for d in d_corpus if d.lower().count(term) > 0]) + 1) + 1
+categs = ["cat", "dog", "communic", "animal", "food", "to", "sentence", "shit", "first"]
 
 
-def word_importance(words, d_corpus: list[str], tf: Func, idf: Func) -> dict[str, float]:
-    scores: dict[str, float] = {}
-    for i in range(len(words)):
-        scores[words[i]] = tf(words[i], d_corpus[2]) * idf(words[i], d_corpus)
+indexes: dict[float, set[str]] = {
+	1.0: {"dog", "bark", "bit", "doggy", "fluffy", "pet", "wolf", "wolves"},
+	2.0: {"cat", "meow", "kitty", "fluffy"},
+	3.0: {"food", "canteen", "kitchen", "delicious", "sweet", "salt", "spicy"},
+}
 
-    return scores
 
-def vectorize_scores(scores: dict[str, float]) -> list[float]:
-	return array([v for v in scores.values()])
+categ_maps: dict[str, float] = {
+	"dog": indexes[1.0],
+	"cat": indexes[2.0],
+	"food": indexes[3.0],
+}
+
+
+@dataclass
+class Sentence:
+	category: float
+	tokens: set[str]
+	
+	def __len__(self) -> int:
+		return len(self.tokens)
+		
+	def count(self, term: str) -> int:
+		return len([t for t in self.tokens if t.startswith(term)])
+	
+
+def split_to_sentences(inp: str) -> List[Sentence]:
+	return [
+		Sentence(category=.0, tokens={w for w in s.split(" ") if len(w) > 2})
+				for s in inp.split(".") if len(s) > 0
+			]
+				
+
+def tf(term: str, sentence: Sentence) -> float:
+	return sentence.count(term) / len(sentence)
+	
+
+def idf(term: str, sentences: List[Sentence]) -> float:
+	return log((len(sentences) + 1) / (len([s for s in sentences if s.count(term) > 0]) + 1)) + 1
+
+
+def get_scores_map(categs: List[str], sentences: List[Sentence], tf: Func, idf: Func) -> Dict[str, float]:
+	scores: Dict[str, float] = {}
+	for i in range(len(categs)):
+		for j in range(len(sentences)):
+			if categs[i] not in scores:
+				scores[categs[i]] = 0
+			scores[categs[i]] += tf(categs[i], sentences[j]) * idf(categs[i], sentences)
+	return scores
+
+
+def get_possible_category():...
+
+
+def main():
+	sentences = split_to_sentences(text)
+	print(get_scores_map(categs, sentences, tf, idf))
+		
 
 if __name__ == '__main__':
-    doc = "this sentence is about dog, the dog is a very friendly animal"
-    doc1 = "this sentence in not about dog, the cat is lazier and faster than dog, since a cat can communicate to another cat"
-    doc2 = "this sentence is neither about cat nor dog, it's about food, the food in very essential to animals"
-    doc3 = "this sentence is not about food, it's about how to feed animals by their food"
-    doc4 = "the previous sentence has more words about dog."
-    doc5 = "the first sentence is about dog but this one is about cat, because cat is a domestic animal as well."
-    corpus = [doc, doc1, doc2, doc3, doc4, doc5]
-    categs = ["cat", "dog", "animal", "food", "sentence"]
-    
-    scores = word_importance(categs, corpus, tf_func, idf_func)
-    
-    print(vectorize_scores(scores))
+	 main()
 	
