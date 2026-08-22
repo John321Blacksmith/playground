@@ -5,7 +5,6 @@ from math import log
 from dataclasses import dataclass
 from typing import TypeVar, List, Dict
 from numpy import array
-import pandas as pd
 
 
 Func = TypeVar("Func")
@@ -90,24 +89,36 @@ def vectorize_scores(sentence_scores: Dict[str, float]) -> List[float]:
 
 def aggregate_vectors(categs: List[str], sentences: List[Sentence]) -> List[List[float]]:
 	...
+	
+def get_possible_category(scores: Dict[str, float]) -> str:
+	sorted = []
+	category = ""
+	score = 0
+	for key in scores:
+		if scores[key] > score:
+			category = key
+			score = scores[key]
+			sorted.append((category, score))
+	print(sorted)
+	return category
 
 
 def main():
 	vectors: List[List[float]] = []
 	sum_vectors = array([.0 for i in range(len(categs))])
 	sentences = split_to_sentences(text)
+	
 	for i in range(len(sentences)):
 		scores = get_sentence_scores_map(categs, sentences[i], sentences, tf, idf)
 		vector = vectorize_scores(scores)
 		vectors.append(vector)
 
-    
 	for i in range(len(vectors)):
 		sum_vectors += vectors[i]
-	series = pd.Series(data=categs, dtype="category")
-	print(series)
+	
 	
 
 if __name__ == '__main__':
-	 main()
-	
+	sentences = split_to_sentences(text)
+	scores = get_input_scores_map(categs, sentences, tf, idf)
+	print(get_possible_category(scores))
