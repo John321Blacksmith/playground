@@ -13,7 +13,7 @@ Func = TypeVar("Func")
 text = "this sentence is about dog, the dog is a very friendly animal. this sentence in not about dog, the cat is lazier and faster than dog, since a cat can communicate to another cat. this sentence is neither about cat nor dog, it's about food, the food in very essential to animals. this sentence is not about food, it's about how to feed animals by their food. the previous sentence has more words about dog. the first sentence is about dog but this one is about cat, because cat is a domestic animal as well."
 
 
-categs = ["cat", "dog", "communic", "animal", "food", "to", "sentence", "shit", "first"]
+categs = ["cat", "dog", "communic", "animal", "food", "to", "sentence", "is", "first", "shit"]
 
 
 indexes: dict[float, set[str]] = {
@@ -90,18 +90,6 @@ def vectorize_scores(sentence_scores: Dict[str, float]) -> List[float]:
 def aggregate_vectors(categs: List[str], sentences: List[Sentence]) -> List[List[float]]:
 	...
 	
-def get_possible_category(scores: Dict[str, float]) -> str:
-	sorted = []
-	category = ""
-	score = 0
-	for key in scores:
-		if scores[key] > score:
-			category = key
-			score = scores[key]
-			sorted.append((category, score))
-	print(sorted)
-	return category
-
 
 def main():
 	vectors: List[List[float]] = []
@@ -116,9 +104,21 @@ def main():
 	for i in range(len(vectors)):
 		sum_vectors += vectors[i]
 	
+
+def sort(pairs: List[tuple[str, float]]):
+	if len(pairs) < 2:
+		return pairs
+		
+	else:
+		pivot = pairs[len(pairs) // 2]
+		smaller = [p for p in pairs if p[1] < pivot[1]]
+		greater = [p for p in pairs if p[1] > pivot[1]]
+		
+		return sort(greater) + [pivot] + sort(smaller)
 	
 
 if __name__ == '__main__':
 	sentences = split_to_sentences(text)
 	scores = get_input_scores_map(categs, sentences, tf, idf)
-	print(get_possible_category(scores))
+	
+	
