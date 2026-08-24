@@ -118,7 +118,12 @@ def sort(pairs: List[tuple[str, float]]):
 	
 
 if __name__ == '__main__':
-	sentences = split_to_sentences(text)
-	scores = get_input_scores_map(categs, sentences, tf, idf)
-	
+	tokens_bag: list[list[str]] = [[t for t in s.split(" ") if len(t) > 2] for s in text.split(".") if len(s) > 0]
+	sentences = [Sentence(category="", tokens=s_token) for s_token in tokens_bag]
+	vectors: list[list[str]] = []
+
+	for i in range(len(sentences)):
+		vectors.append([v for v in get_sentence_scores_map(categs, sentences[i], sentences, tf, idf).values()])
+
+	print(vectors)
 	
