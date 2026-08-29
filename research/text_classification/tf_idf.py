@@ -3,17 +3,20 @@ This module contains a simple version of TF-IDF text processor.
 """
 from math import log
 from dataclasses import dataclass
-from typing import TypeVar, List, Dict
+from typing import TypeVar, List, Dict, AnyStr
 from numpy import array
 
 
 Func = TypeVar("Func")
 
 
+
 text = "this sentence is about dog, the dog is a very friendly animal. this sentence in not about dog, the cat is lazier and faster than dog, since a cat can communicate to another cat. this sentence is neither about cat nor dog, it's about food, the food in very essential to animals. this sentence is not about food, it's about how to feed animals by their food. the previous sentence has more words about dog. the first sentence is about dog but this one is about cat, because cat is a domestic animal as well."
 
+text2 = "But White Fang sat on his haunches and ki-yi’d and ki-yi’d, a forlorn and pitiable little figure in the midst of the man-animals"
 
-categs = ["cat", "dog", "communic", "animal", "food", "to", "sentence", "is", "first", "shit"]
+
+categs = ["cat", "dog", "communic", "animal", "food", "sentence", "is", "first", "shit"]
 
 
 indexes: dict[float, set[str]] = {
@@ -115,15 +118,17 @@ def sort(pairs: List[tuple[str, float]]):
 		greater = [p for p in pairs if p[1] > pivot[1]]
 		
 		return sort(greater) + [pivot] + sort(smaller)
-	
+
+				
+def get_possible_category(sorted_scores: List[tuple[str, float]]) -> List[str]:
+	return [t[0] for t in sorted_scores[:2]]
+		
 
 if __name__ == '__main__':
-	tokens_bag: list[list[str]] = [[t for t in s.split(" ") if len(t) > 2] for s in text.split(".") if len(s) > 0]
+	tokens_bag: list[list[str]] = [[t for t in s.split(" ") if len(t) > 2] for s in text2.split(".") if len(s) > 0]
 	sentences = [Sentence(category="", tokens=s_token) for s_token in tokens_bag]
-	vectors: list[list[str]] = []
-
-	for i in range(len(sentences)):
-		vectors.append([v for v in get_sentence_scores_map(categs, sentences[i], sentences, tf, idf).values()])
-
-	print(vectors)
+	scores = get_input_scores_map(categs, sentences, tf, idf)
+	sorted_scores = sort([v for v in scores.items()])
+	print(scores)
+	print(get_possible_category(sorted_scores))
 	
